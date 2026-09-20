@@ -1,0 +1,642 @@
+<title>Jevify</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#F6F6F7; --surface:#FFFFFF; --ink:#1C1E24; --muted:#6B7080; --line:#E1E3E8; --line-2:#EEEFF2;
+  --jev:#D9552B; --jev-ink:#A83E1C; --jev-tint:#FBEFEA;
+  --sys2:#4B6CB0; --sys2-ink:#38508A; --sys2-tint:#EDF1F9;
+  --det:#2F7D5B; --det-ink:#25634A; --det-tint:#E8F3EE;
+  --base:#C6C9D1; --ok:#2F7D5B; --bad:#B42318;
+  --code-bg:#FAFAFB; --focus:#1C1E24; --band:#1E2130; --band-ink:#F2F3F7; --band-muted:#A3A8BB; --impact-bg:#FFF9F6;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141517; --surface:#1B1C1F; --ink:#E8E9EC; --muted:#9296A3; --line:#2B2D33; --line-2:#242629;
+    --jev:#F07A50; --jev-ink:#F59A7A; --jev-tint:#2C1F1A;
+    --sys2:#7F9BDC; --sys2-ink:#A2B6E6; --sys2-tint:#1D2331;
+    --det:#5DBB8E; --det-ink:#86D1AE; --det-tint:#182620;
+    --base:#3E4149; --ok:#5DBB8E; --bad:#EF7A66;
+    --code-bg:#17181B; --focus:#E8E9EC; --band:#0F1016; --band-ink:#F2F3F7; --band-muted:#8B90A3; --impact-bg:#1F1B1A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141517; --surface:#1B1C1F; --ink:#E8E9EC; --muted:#9296A3; --line:#2B2D33; --line-2:#242629;
+  --jev:#F07A50; --jev-ink:#F59A7A; --jev-tint:#2C1F1A;
+  --sys2:#7F9BDC; --sys2-ink:#A2B6E6; --sys2-tint:#1D2331;
+  --det:#5DBB8E; --det-ink:#86D1AE; --det-tint:#182620;
+  --base:#3E4149; --ok:#5DBB8E; --bad:#EF7A66;
+  --code-bg:#17181B; --focus:#E8E9EC; --band:#0F1016; --band-ink:#F2F3F7; --band-muted:#8B90A3; --impact-bg:#1F1B1A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:13.5px/1.5 var(--body);padding-block:0 48px;padding-inline:clamp(16px,3vw,32px)}
+h1,h2,h3,h4{margin:0;font-weight:600}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+code,pre{font-family:var(--mono)}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+.top{display:flex;align-items:center;gap:16px;padding:12px 16px;margin-inline:calc(-1 * clamp(16px,3vw,32px));padding-inline:clamp(16px,3vw,32px);background:var(--band);color:var(--band-ink);border-bottom:2px solid var(--jev)}
+.brand h1{font-size:15px;font-weight:600;letter-spacing:-.01em;font-family:var(--mono);color:var(--jev)}
+.brand h1 em{font-style:normal;color:var(--band-muted);font-weight:400}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--band-muted)}
+.pill .dot{width:8px;height:8px;border-radius:2px}
+.pill.jev .dot{background:var(--jev)} .pill.det .dot{background:var(--det)} .pill.sys2 .dot{background:var(--sys2)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line-2)}
+.step .n{font-size:12px;font-weight:600;color:var(--ink);padding-left:10px;border-left:3px solid var(--jev)}
+.step h2{font-size:13px;font-weight:400;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:4px 9px;border-radius:4px;border:1px solid transparent;background:transparent;font-size:12.5px;color:var(--muted)}
+.chip:hover{color:var(--ink);background:var(--line-2)}
+.chip[aria-pressed="true"]{background:var(--jev-tint);color:var(--jev-ink);border-color:var(--jev)}
+.spacer{flex:1}
+.run{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:4px;border:1px solid var(--jev);background:var(--jev);color:#fff;font-weight:600;font-size:13px;min-width:0;justify-content:center}
+.run:hover{opacity:.9} .run[disabled]{opacity:.6;cursor:progress}
+details.src{border:0}
+details.src summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:12.5px;color:var(--muted)}
+details.src summary::-webkit-details-marker{display:none}
+details.src summary .tri{display:inline-block;transition:transform .15s;font-size:9px}
+details.src[open] summary .tri{transform:rotate(90deg)}
+details.src summary code{color:var(--ink);font-size:12px}
+textarea{width:100%;min-height:340px;border:0;border-top:1px solid var(--line-2);resize:vertical;background:var(--code-bg);color:var(--ink);font:12.5px/1.6 var(--mono);padding:12px 14px;border-radius:0 0 6px 6px;tab-size:4;display:block}
+textarea:focus-visible{outline-offset:-2px}
+.prog{display:none;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.prog.on{display:flex}
+.prog .spin{width:11px;height:11px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--ink);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.impact{padding:16px 14px 18px;display:flex;flex-direction:column;gap:16px;background:var(--impact-bg);border-radius:0 0 6px 6px}
+.heroes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hero{display:flex;flex-direction:column;gap:2px;min-width:0;padding-right:14px;border-right:1px solid var(--line-2)}
+.hero:last-child{border-right:0}
+.hero .k{font-size:12px;color:var(--muted)}
+.hero .big{font-weight:600;font-size:24px;color:var(--jev-ink);line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hero .big .was{color:var(--muted);font-weight:400;font-size:15px}
+.hero .big .was::before{content:"was ";color:var(--muted)}
+.hero .big .delta{font-size:30px;font-weight:700;color:#fff;background:var(--det);padding:0 10px;border-radius:4px;line-height:1.3;letter-spacing:-.02em}
+.hero .sub{font-size:12px;color:var(--muted)}
+.chart{display:flex;flex-direction:column;gap:5px}
+.chart .t{font-size:12px;color:var(--muted)}
+.brow{display:grid;grid-template-columns:52px 1fr 64px;align-items:center;gap:10px}
+.brow .lab{font-size:12px;color:var(--muted)}
+.brow .val{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.track{height:18px;display:flex;gap:2px;width:100%}
+.seg{height:100%;min-width:0;border-radius:2px;position:relative;transition:flex-basis .7s cubic-bezier(.2,.7,.2,1);overflow:hidden;cursor:default}
+.seg.base{background:var(--base)} .seg.jev{background:var(--jev)} .seg.det{background:var(--det)} .seg.keep{background:var(--sys2)}
+.seg span{position:absolute;inset:0;display:flex;align-items:center;padding-left:6px;font:10.5px var(--mono);color:#fff;white-space:nowrap;pointer-events:none}
+.seg.base span{color:var(--ink);opacity:.75}
+.seg.gone{flex:0 0 0!important;min-width:0}
+.axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.tip{position:fixed;z-index:9;pointer-events:none;background:var(--band);color:var(--band-ink);font-size:12px;padding:6px 9px;border-radius:4px;max-width:260px;display:none}
+.tip b{font-family:var(--mono);font-weight:600}
+.quality{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);padding-top:12px;border-top:1px solid var(--line-2);align-items:center}
+.quality b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+.quality .ok{color:var(--det-ink);font-weight:600;background:var(--det-tint);padding:2px 8px;border-radius:3px}
+.quality .bad{color:var(--bad);font-weight:600}
+.quality .lnk{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:12.5px}
+.quality .lnk:hover{color:var(--ink)}
+.guard{display:none;font-size:12.5px;color:var(--muted);border-left:2px solid var(--line);padding:2px 12px;max-width:80ch;line-height:1.6}
+.guard.on{display:block}
+.guard code{font-size:11.5px;color:var(--ink)}
+
+.rows{display:flex;flex-direction:column}
+.row{border-top:1px solid var(--line-2)}
+.row:first-child{border-top:0}
+.rowhead{width:100%;display:grid;grid-template-columns:16px 1.2fr 1.4fr 110px 110px;gap:12px;align-items:center;padding:9px 14px;background:none;border:0;text-align:left}
+.rowhead:hover{background:var(--line-2)}
+.row[open] .rowhead{background:var(--line-2)}
+.rowhead .tag.jev{color:var(--jev-ink);font-weight:600} .rowhead .tag.det{color:var(--det-ink);font-weight:600} .rowhead .tag.keep{color:var(--sys2-ink)}
+.rowhead .d.better{color:var(--jev-ink)}
+.rowhead .tri{font-size:9px;color:var(--muted);transition:transform .15s}
+.row[open] .rowhead .tri{transform:rotate(90deg)}
+.rowhead .fn{font-family:var(--mono);font-size:12px;font-weight:600}
+.rowhead .fn small{display:block;font-family:var(--body);font-weight:400;color:var(--muted);font-size:11.5px}
+.rowhead .d{font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.rowhead .d small{color:var(--muted);font-size:11px;display:block}
+.rowhead .d.same{color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;color:var(--ink)}
+.tag::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--base);flex:none}
+.tag.jev::before{background:var(--jev)} .tag.keep::before{background:var(--sys2)} .tag.det::before{background:var(--det)}
+.rowbody{padding:6px 14px 18px 42px;display:flex;flex-direction:column;gap:12px}
+.why{margin:0;font-size:13px;max-width:72ch;color:var(--ink)}
+.prims{display:flex;gap:6px;flex-wrap:wrap}
+.prim{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:3px;background:var(--jev-tint);border:1px solid var(--jev);color:var(--jev-ink)}
+.tabs{display:flex;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{padding:6px 0;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-size:12.5px;color:var(--muted);border-radius:0}
+.tab[aria-selected="true"]{color:var(--jev-ink);border-bottom-color:var(--jev)}
+.tab:hover{color:var(--ink)}
+.sec h4{margin:0 0 6px;font-size:12px;font-weight:600;color:var(--muted)}
+pre.blk{margin:0;background:var(--code-bg);border:1px solid var(--line-2);border-radius:4px;padding:10px 12px;font-size:11.5px;line-height:1.55;overflow-x:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two pre.blk{min-width:0}
+pre.blk.after{border-left:3px solid var(--jev);background:var(--jev-tint)}
+pre.blk.after.det{border-left-color:var(--det);background:var(--det-tint)}
+.slice{display:grid;gap:0;border:1px solid var(--line-2);border-radius:4px}
+.slice div{display:grid;grid-template-columns:150px 1fr;gap:10px;font-size:12.5px;padding:6px 10px;border-top:1px solid var(--line-2)}
+.slice div:first-child{border-top:0}
+.slice .f{font-family:var(--mono);font-size:11.5px;font-weight:600}
+.slice .used{background:var(--jev-tint)} .slice .used .f{color:var(--jev-ink)} .slice .unused{color:var(--muted)} .slice .unused .f{text-decoration:line-through;color:var(--muted)}
+table.ev{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.ev th{text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+table.ev td{padding:6px 8px;border-bottom:1px solid var(--line-2)}
+table.ev td.num{text-align:right}
+table.ev .pass{color:var(--ok);font-weight:600} table.ev .fail{color:var(--bad);font-weight:600}
+.checks{display:grid;border:1px solid var(--line-2);border-radius:4px}
+.checks div{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;padding:6px 10px;border-top:1px solid var(--line-2)}
+.checks div:first-child{border-top:0}
+.checks .f{font-family:var(--mono);font-size:11.5px;color:var(--ink);flex:none;min-width:200px}
+.note{font-size:12.5px;padding:8px 12px;border-left:3px solid var(--sys2);background:var(--sys2-tint);color:var(--sys2-ink)}
+.rollout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rollout div{padding:8px 10px;border-radius:4px;border:1px solid var(--line);border-top:3px solid var(--sys2);font-size:12px;color:var(--muted)}
+.rollout b{display:block;font-size:12.5px;margin-bottom:2px;color:var(--ink)}
+.empty{padding:28px 20px;color:var(--muted);text-align:center;font-size:13px}
+.empty b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+footer{font-size:12px;color:var(--muted);max-width:90ch}
+@media (prefers-reduced-motion:reduce){.prog .spin{animation:none}.seg{transition:none}}
+@media (max-width:760px){.heroes{grid-template-columns:1fr}.hero{border-right:0;padding-right:0}.two,.rollout{grid-template-columns:1fr}.slice div{grid-template-columns:1fr}.checks .f{min-width:0}.rowhead{grid-template-columns:16px 1fr 1fr}.rowhead .d{display:none}.rowbody{padding-left:14px}.brow{grid-template-columns:44px 1fr 56px}.legend{display:none}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>jevify <em>/ preview</em></h1>
+    </div>
+    <p class="brand" style="margin:0"><span style="color:var(--band-muted);font-size:13px">Moves eligible LLM decisions onto Jev. Keeps generative calls. Adds fallbacks.</span></p>
+    <div class="legend">
+      <span class="pill jev"><span class="dot"></span>Jev</span>
+      <span class="pill det"><span class="dot"></span>Plain code</span>
+      <span class="pill sys2"><span class="dot"></span>Kept</span>
+    </div>
+  </div>
+
+  <!-- 1 · code -->
+  <section class="card" aria-label="Code">
+    <div class="step">
+      <span class="n">Source</span>
+      <div class="chips" id="chips"></div>
+      <span class="spacer"></span>
+      <div class="prog" id="prog"><span class="spin"></span><span id="progText"></span></div>
+      <button class="run" id="run" type="button">Run</button>
+    </div>
+    <details class="src" id="srcBox" open>
+      <summary><span class="tri">▶</span><code id="srcName">Paste Python or pick an example</code><span id="srcMeta"></span></summary>
+      <textarea id="src" spellcheck="false" placeholder="# Paste Python with LLM calls here, or pick an example above."></textarea>
+    </details>
+  </section>
+
+  <!-- 2 · impact -->
+  <section class="card" id="impact" hidden aria-label="Impact">
+    <div class="step"><span class="n">Impact</span><h2 id="impactTitle">per request, replay set</h2></div>
+    <div class="impact">
+      <div class="heroes">
+        <div class="hero"><span class="k">p95 latency, calls in sequence</span><div class="big" id="latBig"></div><span class="sub" id="latSub"></span></div>
+        <div class="hero"><span class="k">Cost per 1,000 runs</span><div class="big" id="costBig"></div><span class="sub" id="costSub"></span></div>
+      </div>
+      <div class="chart" id="latChart"></div>
+      <div class="chart" id="costChart"></div>
+      <div class="quality" id="quality"></div>
+      <div class="guard" id="guard"></div>
+    </div>
+  </section>
+
+  <!-- 3 · changes -->
+  <section class="card" id="changes" hidden aria-label="Changes">
+    <div class="step"><span class="n">Call sites</span><h2 id="changesTitle"></h2><span class="spacer"></span><span style="font-size:12px;color:var(--muted)">Expand a row for the rewrite, spec, eval and PR</span></div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <footer id="foot" hidden>Front-end mock — nothing runs. Examples are hand-routed with illustrative numbers; pasted code goes through a small heuristic and has no traces, so it shows verdicts without impact figures.</footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const CONS={quality:0.95, recall:0.98, p95:400, fallback:0.15};
+// site.impact = {lb, la, cb, ca}: p95 latency ms before/after, cost per 1k runs before/after
+const EXAMPLES=[
+{ id:"triage", name:"Ticket triage", file:"support/triage.py",
+  src:`import json
+
+def classify_ticket(ticket: str) -> dict:
+    prompt = f"""
+    Analyze this support ticket.
+
+    Return JSON with:
+    - department: billing, technical, sales, or account
+    - urgent: true or false
+    - frustration: calm, frustrated, or very_angry
+    - summary: one sentence
+    - language: ISO code
+    - product_area: free text
+    - suggested_reply: a short draft
+
+    Ticket:
+    {ticket}
+    """
+    response = call_llm(model="gpt-4o", prompt=prompt)
+    return json.loads(response)
+
+
+def route(ticket: str) -> None:
+    result = classify_ticket(ticket)
+    if result["department"] == "billing" and result["urgent"]:
+        page_oncall("billing", ticket)
+    elif result["frustration"] == "very_angry":
+        escalate_to_human(ticket)
+    else:
+        enqueue(result["department"], ticket)
+
+
+def write_reply(ticket: str) -> str:
+    return call_llm(
+        model="gpt-4o",
+        prompt=f"Write a friendly reply to this ticket, citing our refund policy where relevant:\\n{ticket}",
+    )`,
+  sites:[
+    { fn:"classify_ticket", line:17, kind:"jev", rec:"Direct Jev replacement", pattern:"Enum + bool + rating in one JSON (4 fields unused)", prims:["Choice","Noul","Score"],
+      impact:{lb:2900, la:210, cb:14.20, ca:0.61},
+      why:"The prompt asks for seven fields but route() only branches on three: department, urgent and frustration. Those map one-to-one onto Choice, Noul and Score, asked in a single Jev request. The other four fields are dropped, not ported. Uncertain answers fall back to the original call.",
+      slice:[["department","used","route(): == \"billing\" → page_oncall / enqueue key"],["urgent","used","route(): truthiness gate for paging"],["frustration","used","route(): == \"very_angry\" → escalate_to_human"],["summary","unused","never read"],["language","unused","never read"],["product_area","unused","never read"],["suggested_reply","unused","never read — generation done for nothing"]],
+      before:`response = call_llm(model="gpt-4o", prompt=prompt)   # 7-field JSON
+return json.loads(response)`,
+      after:`typesafe = TypeSafeClient(model="jev-2025-09-01")      # pinned version
+DEPARTMENT_MIN_CONFIDENCE = 0.70                       # fitted on 1,240 traces
+URGENT_LOW, URGENT_HIGH = 0.35, 0.65                   # uncertain band → fallback
+
+def classify_ticket(ticket: str) -> dict:
+    if not flags.enabled("jevify.triage"):
+        return classify_ticket_original(ticket)
+    r = typesafe.system_one(
+        state={"ticket": ticket},
+        questions={
+            "department": Choice(instructions="Which department should handle \`ticket\`?",
+                criteria={"billing": "Charges, invoices, payments, refunds",
+                          "technical": "Bugs, outages, product malfunction",
+                          "sales": "Pricing, purchasing, upgrades",
+                          "account": "Login, profile, permissions, access"}),
+            "urgent": Noul(instructions="Does \`ticket\` need a response ahead of the normal queue?"),
+            "frustration": Score(instructions="How frustrated is the customer in \`ticket\`?",
+                criteria=["Calm", "Frustrated but constructive", "Very angry or threatening to leave"]),
+        })
+    dept, urgent_p, frus = r.answers["department"], r.answers["urgent"].noul, r.answers["frustration"]
+    if dept.confidence < DEPARTMENT_MIN_CONFIDENCE or URGENT_LOW < urgent_p < URGENT_HIGH:
+        return classify_ticket_original(ticket)          # fallback
+    return {"department": dept.choice, "urgent": urgent_p >= URGENT_HIGH,
+            "frustration": ["calm", "frustrated", "very_angry"][frus.score - 1]}`,
+      spec:`name: support_ticket_triage
+source: support/triage.py:17
+state: {ticket: $ticket}
+questions:
+  department: {type: choice, criteria: {billing: …, technical: …, sales: …, account: …}}
+  urgent:     {type: noul}
+  frustration:{type: score, scale: [calm, frustrated, very_angry]}
+dropped_fields: [summary, language, product_area, suggested_reply]   # unused downstream
+policy:
+  fallback_when: [department.confidence < $department_threshold, urgent.noul in uncertain_band]
+fallback: classify_ticket_original
+metrics: [department_accuracy, urgent_recall, fallback_rate, p95_latency, cost_per_1000]`,
+      ev:{n:1240, agree:0.968, recall:0.991, fb:0.09, critical:"urgent=true"},
+      pr:["decisions/support_ticket_triage.yaml — generated DecisionSpec","support/triage.py — new implementation; original kept as classify_ticket_original","flags: jevify.triage (default off)","shadow: both paths run, disagreements logged","tests/replay/test_triage.py — 1,240 replayed traces","benchmarks/triage.md — baseline vs Jev","ROLLBACK.md — flip the flag; no schema changes"] },
+    { fn:"write_reply", line:32, kind:"keep", rec:"Keep generative model", pattern:"Open-ended writing, policy grounding", prims:[],
+      impact:{lb:3200, la:3200, cb:18.00, ca:18.00},
+      why:"Composes customer-facing prose and has to weave in refund policy. Jev doesn't generate text, so this stays on gpt-4o. Optional follow-up: surround it with a Jev output verifier (does the draft cite the policy when it should?).",
+      slice:[["return","used","sent to the customer"]],
+      before:`return call_llm(model="gpt-4o", prompt=f"Write a friendly reply … {ticket}")`,
+      after:`# unchanged`,
+      spec:`name: reply\nsource: support/triage.py:32\nrecommendation: keep\nreason: generative`, ev:null, pr:["No change"] },
+  ]},
+{ id:"refund", name:"Refund approval", file:"billing/refunds.py",
+  src:`def should_approve_refund(request: dict, account: dict) -> bool:
+    answer = call_llm(
+        model="claude-opus-4-1",
+        prompt=f"""You are a refunds analyst. Decide whether to approve this refund.
+Consider whether a refund was actually requested, whether there is evidence of a
+duplicate charge, whether our policy supports it, and how badly the customer is affected.
+Also check the request is within 30 days and under $500.
+Think step by step, then answer APPROVE or DENY.
+
+Request: {request}
+Account: {account}
+Policy: {REFUND_POLICY}""",
+    )
+    return "APPROVE" in answer.upper()
+
+
+def handle(request, account):
+    if should_approve_refund(request, account):
+        issue_refund(request["charge_id"], request["amount"])
+    else:
+        open_manual_review(request)`,
+  sites:[
+    { fn:"should_approve_refund", line:2, kind:"jev", rec:"Decomposition + policy in code", pattern:"One broad judgement hiding 4 sub-decisions and 2 arithmetic checks", prims:["Noul ×3","Score"],
+      impact:{lb:6100, la:240, cb:31.50, ca:1.10},
+      why:"The prompt bundles four independent judgements, two things that are plain arithmetic (30-day window, $500 cap), and a policy that should be a rule. Jevify splits it: the date and amount checks become code, the four judgements become one Jev request, and the approval rule is written where a reviewer can read it. Because this issues money, uncertain cases fall back to the original reasoning call.",
+      slice:[["return value","used","handle(): gates issue_refund() — money attached"],["30 days / $500","used","judged by the LLM today; computable from request + account"],["APPROVE string match","used","brittle: \"I would not APPROVE\" returns True"]],
+      before:`answer = call_llm(model="claude-opus-4-1", prompt="""…Think step by step, then answer APPROVE or DENY…""")
+return "APPROVE" in answer.upper()`,
+      after:`MIN_CONF = 0.75                                   # fitted; refund errors are asymmetric
+
+def should_approve_refund(request, account) -> bool:
+    if days_since(request["charged_at"]) > 30 or request["amount"] > 500:   # arithmetic in code
+        return False
+    r = typesafe.system_one(
+        state={"request": request, "account": account, "policy": REFUND_POLICY},
+        questions={
+            "refund_requested":          Noul(instructions="Does \`request\` explicitly ask for money back?"),
+            "duplicate_charge_evidence": Noul(instructions="Does \`account\` show a duplicate of the charge?"),
+            "policy_supports_refund":    Noul(instructions="Under \`policy\`, is this refund permitted?"),
+            "customer_impact":           Score(instructions="How badly is the customer affected?",
+                                               criteria=["Minor", "Meaningful", "Severe"]),
+        })
+    a = r.answers
+    if min(x.confidence for x in a.values()) < MIN_CONF:
+        return should_approve_refund_original(request, account)   # fallback
+    return (a["refund_requested"].noul > 0.5 and a["policy_supports_refund"].noul > 0.5
+            and (a["duplicate_charge_evidence"].noul > 0.5 or a["customer_impact"].score >= 2))`,
+      spec:`name: refund_approval
+source: billing/refunds.py:2
+deterministic_prechecks: [days_since(request.charged_at) <= 30, request.amount <= 500]
+questions:
+  refund_requested: {type: noul}
+  duplicate_charge_evidence: {type: noul}
+  policy_supports_refund: {type: noul}
+  customer_impact: {type: score, scale: 3}
+policy:
+  approve: refund_requested && policy_supports_refund && (duplicate_charge_evidence || customer_impact >= 2)
+  fallback_when: [any.confidence < $min_conf]
+fallback: should_approve_refund_original
+risk: high   # issues money — canary 5%, human-labelled outcomes required`,
+      ev:{n:860, agree:0.951, recall:0.983, fb:0.13, critical:"deny (wrongful approval)"},
+      pr:["decisions/refund_approval.yaml","billing/refunds.py — prechecks in code, 4 questions, explicit rule; original preserved","flags: jevify.refunds — high-risk: canary 5% → 25% → 100%","tests/test_refund_policy.py — rule tested with no model in the loop","tests/replay/test_refunds.py — 860 traces with human-labelled outcomes","benchmarks/refunds.md","ROLLBACK.md"] },
+  ]},
+{ id:"invoice", name:"Invoice pipeline", file:"invoices/extract.py",
+  src:`import json
+
+def process_invoice(text: str):
+    fields = call_llm(
+        model="claude-opus-4-1",
+        prompt=f"Extract vendor, invoice_number, date, total and currency as JSON. "
+               f"Reason carefully about ambiguous date formats.\\n\\n{text}",
+    )
+    data = json.loads(fields)
+
+    overdue = call_llm(
+        model="gpt-4o",
+        prompt=f"How many days overdue is an invoice dated {data['date']} with net-30 terms, "
+               f"as of {today()}? Number only.",
+    )
+
+    review = call_llm(
+        model="claude-opus-4-1",
+        prompt=f"Audit this invoice against our procurement policy. List every exception "
+               f"with the clause it violates and the evidence.\\nInvoice: {data}\\nPolicy: {POLICY}",
+    )
+    return data, int(overdue), review`,
+  sites:[
+    { fn:"fields", line:4, kind:"jev", rec:"Extraction cascade", pattern:"Open-ended extraction on a frontier model", prims:["Noul ×5"],
+      impact:{lb:4800, la:900, cb:22.00, ca:3.40},
+      why:"Jev doesn't extract free text, so it can't replace this outright. It can decide whether a cheap extractor got it right: a small model does the first pass, Jev checks each field against the source, and only invoices with a doubtful field go to Opus. On the replay, 91% never reach the expensive model.",
+      slice:[["data.date","used","overdue calculation — format matters"],["data.total, currency","used","review prompt + ledger"],["data.vendor, invoice_number","used","review prompt; dedupe elsewhere"]],
+      before:`fields = call_llm(model="claude-opus-4-1", prompt="Extract … Reason carefully about ambiguous date formats.")`,
+      after:`draft = call_llm(model="small-extractor", prompt=EXTRACT_PROMPT, schema=INVOICE_SCHEMA)   # cheap pass
+check = typesafe.system_one(
+    state={"text": text, "draft": draft},
+    questions={f"{f}_correct": Noul(instructions=f"Is \`draft.{f}\` supported by \`text\`?")
+               for f in ("vendor", "invoice_number", "date", "total", "currency")})
+if min(a.noul for a in check.answers.values()) < FIELD_OK:          # any field doubtful
+    data = call_llm(model="claude-opus-4-1", prompt=EXTRACT_PROMPT_REASONED, schema=INVOICE_SCHEMA)
+else:
+    data = draft`,
+      spec:`name: invoice_field_verification
+source: invoices/extract.py:4
+pattern: cascade
+stages: [{extractor: small-extractor}, {verify: jev}, {escalate: claude-opus-4-1}]
+questions: {vendor_correct: noul, invoice_number_correct: noul, date_correct: noul, total_correct: noul, currency_correct: noul}
+policy: {escalate_when: "min(field.noul) < $field_ok"}`,
+      ev:{n:2100, agree:0.974, recall:0.995, fb:0.09, critical:"total wrong"},
+      pr:["decisions/invoice_field_verification.yaml","invoices/extract.py — cascade; Opus path unchanged and reachable","flags: jevify.invoice_cascade","tests/replay/test_extract.py — 2,100 traces","benchmarks/extract.md"] },
+    { fn:"overdue", line:11, kind:"det", rec:"Replace with plain code", pattern:"Date arithmetic asked as a question", prims:[],
+      impact:{lb:2100, la:1, cb:5.10, ca:0},
+      why:"Days overdue is a subtraction. Sending it to a model costs money, adds ~2 s, and occasionally returns \"31 days\" as text, which then crashes int(). Not a Jev task either — just code.",
+      slice:[["int(overdue)","used","return value; crashes when the model adds words"]],
+      before:`overdue = call_llm(model="gpt-4o", prompt=f"How many days overdue … Number only.")`,
+      after:`due = date.fromisoformat(data["date"]) + timedelta(days=30)
+overdue = max(0, (today() - due).days)`,
+      spec:`name: days_overdue\nsource: invoices/extract.py:11\nrecommendation: deterministic_code`,
+      ev:{n:2100, agree:1.0, recall:1.0, fb:0, critical:"—"},
+      pr:["invoices/extract.py — two lines of date math","tests/test_overdue.py — same day, leap year, future-dated"] },
+    { fn:"review", line:17, kind:"keep", rec:"Keep reasoning model", pattern:"Multi-document audit with cited evidence", prims:[],
+      impact:{lb:7400, la:7400, cb:28.00, ca:28.00},
+      why:"Cross-references a long policy against the invoice and must justify each exception with evidence. Dependent reasoning steps — exactly what Jev is not for. Left alone; it does get verified fields as input now.",
+      slice:[["review","used","rendered to an auditor"]],
+      before:`review = call_llm(model="claude-opus-4-1", prompt="Audit this invoice … with the clause it violates and the evidence.")`, after:`# unchanged`,
+      spec:`name: procurement_audit\nrecommendation: keep\nreason: dependent reasoning, evidence citation`, ev:null, pr:["No change"] },
+  ]},
+{ id:"agent", name:"Agent loop", file:"agents/runner.py",
+  src:`def run_agent(goal: str, tools: list[str]) -> str:
+    plan = call_llm(model="gpt-4o", prompt=f"Plan the steps to achieve: {goal}\\nTools: {tools}")
+
+    for step in parse_steps(plan):
+        tool = call_llm(model="gpt-4o", prompt=f"Which tool from {tools} should run this step? Name only.\\n{step}")
+        result = call_tool(tool, step)
+
+        ok = call_llm(model="gpt-4o", prompt=f"Did the step succeed? Answer yes or no.\\nStep: {step}\\nResult: {result}")
+        if ok.strip().lower() != "yes":
+            plan = call_llm(model="gpt-4o", prompt=f"This step failed:\\n{step}\\nResult: {result}\\nRevise the remaining plan.")
+
+    return call_llm(model="gpt-4o", prompt=f"Summarize what was done for the user:\\n{plan}")`,
+  sites:[
+    { fn:"plan", line:2, kind:"keep", rec:"Keep reasoning model", pattern:"Planning over an open tool set", prims:[], impact:{lb:3400, la:3400, cb:9.00, ca:9.00},
+      why:"Decomposing a goal into steps is dependent, multi-step reasoning. Left alone.", slice:[["plan","used","parse_steps() drives the loop"]], before:`plan = call_llm(model="gpt-4o", prompt="Plan the steps …")`, after:`# unchanged`, spec:`name: agent_plan\nrecommendation: keep`, ev:null, pr:["No change"] },
+    { fn:"tool  ×4 steps", line:5, kind:"jev", rec:"Jev router + LLM fallback", pattern:"Choose one of N known tools, every iteration", prims:["Choice"], impact:{lb:7600, la:640, cb:39.20, ca:2.08},
+      why:"Picking a tool from a fixed list is a Choice. It runs once per step (4 on the replay median), so it was most of the loop's latency. Tool descriptions become the criteria; when confidence is low the original call is used, so the agent never gets a worse answer than before.",
+      slice:[["tool","used","call_tool(tool, …) — must be an exact name"]],
+      before:`tool = call_llm(model="gpt-4o", prompt=f"Which tool from {tools} should run this step? Name only.\\n{step}")`,
+      after:`r = typesafe.system_one(state={"step": step},
+    questions={"tool": Choice(instructions="Which tool should run \`step\`?",
+                              criteria={t: TOOL_DESCRIPTIONS[t] for t in tools})})
+tool = r.answers["tool"].choice if r.answers["tool"].confidence >= ROUTER_MIN_CONF \\
+       else call_llm(model="gpt-4o", prompt=ROUTER_PROMPT.format(tools=tools, step=step))`,
+      spec:`name: agent_tool_router\nsource: agents/runner.py:5\nquestions: {tool: {type: choice, criteria: $TOOL_DESCRIPTIONS}}\npolicy: {fallback_when: [tool.confidence < $router_min_conf]}`,
+      ev:{n:5400, agree:0.982, recall:0.99, fb:0.06, critical:"destructive tool chosen wrongly"},
+      pr:["decisions/agent_tool_router.yaml","agents/runner.py — router with confidence gate; original prompt kept","tools/descriptions.py — one-line criteria per tool (reviewers: check these)","tests/replay/test_router.py — 5,400 step traces"] },
+    { fn:"ok  ×4 steps", line:8, kind:"jev", rec:"Jev verifier", pattern:"LLM as success checker (yes/no)", prims:["Noul"], impact:{lb:6800, la:600, cb:35.60, ca:1.92},
+      why:"Judging whether a tool result accomplished the step is a one-bit verification — a Noul. The probability is more useful than the old string: the loop can retry on \"maybe\", not only on \"no\".",
+      slice:[["ok","used","!= \"yes\" gate → replanning; brittle string compare"]],
+      before:`ok = call_llm(model="gpt-4o", prompt="Did the step succeed? Answer yes or no. …")
+if ok.strip().lower() != "yes":`,
+      after:`ok = typesafe.system_one(state={"step": step, "result": result},
+        questions={"succeeded": Noul(instructions="Did \`result\` accomplish \`step\`?")}).answers["succeeded"].noul
+if ok < STEP_OK:`,
+      spec:`name: agent_step_verifier\nquestions: {succeeded: {type: noul}}\npolicy: {retry_when: "succeeded < $step_ok"}`,
+      ev:{n:5400, agree:0.971, recall:0.988, fb:0, critical:"missed failure"},
+      pr:["decisions/agent_step_verifier.yaml","agents/runner.py — Noul gate","tests/replay/test_verifier.py"] },
+    { fn:"plan (revise)", line:10, kind:"keep", rec:"Keep reasoning model", pattern:"Replanning after failure (rare)", prims:[], impact:{lb:900, la:900, cb:2.40, ca:2.40},
+      why:"Only fires on failure and has to reason about why. Rare and hard — left alone. (p95 contribution is small because most runs never hit it.)", slice:[["plan","used","replaces the loop driver"]], before:`plan = call_llm(model="gpt-4o", prompt="This step failed … Revise the remaining plan.")`, after:`# unchanged`, spec:`name: agent_replan\nrecommendation: keep`, ev:null, pr:["No change"] },
+    { fn:"summary", line:12, kind:"keep", rec:"Keep generative model", pattern:"Summary for the user", prims:[], impact:{lb:2600, la:2600, cb:7.10, ca:7.10},
+      why:"Writes prose for a person. Jev doesn't generate text. A smaller generative model would do, but that's a different optimizer's call.", slice:[["return","used","shown to the user"]], before:`return call_llm(model="gpt-4o", prompt="Summarize what was done …")`, after:`# unchanged`, spec:`name: agent_summary\nrecommendation: keep`, ev:null, pr:["No change"] },
+  ]},
+];
+
+// ---------- heuristic for pasted code (no traces → no impact numbers) ----------
+const RULES=[
+  {re:/how many days|\b(days?|count|calculate|compute|sum)\b.*\b(number only|integer)\b/i, kind:"det", rec:"Replace with plain code", pattern:"Arithmetic or date logic asked as a question", prims:[]},
+  {re:/which (tool|model|agent|queue|team)|route|dispatch/i, kind:"jev", rec:"Jev router + LLM fallback", pattern:"Chooses among known targets", prims:["Choice"]},
+  {re:/did .* succeed|is (this|it) (correct|valid|safe|toxic|spam)|verify|grader|judge|moderat/i, kind:"jev", rec:"Jev verifier", pattern:"LLM as checker", prims:["Noul"]},
+  {re:/one of|classify|categori|label|which (category|department|type)/i, kind:"jev", rec:"Direct Jev replacement", pattern:"Enum classification", prims:["Choice"]},
+  {re:/yes or no|yes\/no|true or false|boolean|\bis (this|there|it|any)\b|does (this|it)/i, kind:"jev", rec:"Direct Jev replacement", pattern:"Boolean judgement", prims:["Noul"]},
+  {re:/\brate\b|score|severity|urgency|1-5|1 to 5|1-10|how (frustrated|angry|likely|severe)/i, kind:"jev", rec:"Direct Jev replacement", pattern:"Ordered rating", prims:["Score"]},
+  {re:/extract|as json|return json/i, kind:"jev", rec:"Extraction cascade", pattern:"Open-ended extraction", prims:["Noul per field"]},
+  {re:/decide|approve|deny|should we|consider whether/i, kind:"jev", rec:"Decomposition + policy in code", pattern:"Broad decision hiding sub-judgements", prims:["Noul","Score"]},
+  {re:/plan|step by step|reason|analy|audit|revise|debug|prove|strategy/i, kind:"keep", rec:"Keep reasoning model", pattern:"Dependent reasoning steps", prims:[]},
+  {re:/write|draft|compose|summar|reply|email|generate|explain/i, kind:"keep", rec:"Keep generative model", pattern:"Generates prose or code", prims:[]},
+];
+function heuristic(text){
+  const lines=text.split("\n"), sites=[];
+  const modelRe=/model\s*=\s*["']([^"']+)["']/, wrapRe=/\b(?:llm|ask|call_llm|complete|chat|generate)\(\s*["']([^"']+)["']/;
+  for(let i=0;i<lines.length;i++){
+    const m=lines[i].match(modelRe)||lines[i].match(wrapRe); if(!m) continue;
+    let start=i; while(start>0 && !/=\s*\w[\w.]*\(|\breturn\b/.test(lines[start]) && i-start<3) start--;
+    let end=i, depth=0; for(let j=start;j<lines.length&&j<start+40;j++){ for(const ch of lines[j]){ if(ch==="(")depth++; else if(ch===")")depth--; } end=j; if(depth<=0&&j>=i) break; }
+    const win=lines.slice(start,end+1).join("\n");
+    const rule=RULES.find(r=>r.re.test(win))||{kind:"keep",rec:"Keep — intent unclear",pattern:"Couldn't infer the decision from the prompt",prims:[]};
+    const nm=lines[start].match(/^\s*(?:return\s+)?([\w.]+)\s*=/); const fn=nm?nm[1]:(/\breturn\b/.test(lines[start])?"return":"call");
+    sites.push({fn, line:start+1, kind:rule.kind, rec:rule.rec, pattern:rule.pattern, prims:rule.prims, impact:null,
+      why: rule.kind==="jev"?`The prompt reads as ${rule.pattern.toLowerCase()}, which maps onto ${rule.prims.join(" + ")}. The real tool confirms this from downstream code and replay traces before proposing it.` : rule.kind==="det"?"Computable without any model — plain code, not Jev." : `The prompt asks for ${rule.pattern.toLowerCase()}. Not a Jev task — left on ${m[1]}.`,
+      slice:[["(not analysed)","unused","Program-slice analysis needs the repository scanner; the mock only sees this snippet."]],
+      before:win.trim(), after: rule.kind==="jev"?`r = typesafe.system_one(state={...}, questions={"${fn}": ${rule.prims[0]||"Choice"}(instructions="…", criteria=…)})\nif r.answers["${fn}"].confidence < MIN_CONF:\n    return ${fn}_original(...)   # fallback`: rule.kind==="det"?"# replace with plain code":"# unchanged",
+      spec:`name: ${fn}\nsource: pasted:${start+1}\nrecommendation: ${rule.kind}\npattern: ${rule.pattern}`, ev:null,
+      pr: rule.kind==="jev"?["Would include: DecisionSpec, implementation with fallback, feature flag, shadow instrumentation, replay tests, benchmark"]:["No change"]});
+    i=end;
+  }
+  return sites;
+}
+
+// ---------- helpers ----------
+const $=id=>document.getElementById(id);
+const fmtMs=v=>v>=1000?(v/1000).toFixed(1)+" s":Math.round(v)+" ms";
+const fmtUsd=v=>"$"+v.toFixed(2);
+const pct=v=>(v*100).toFixed(1)+"%";
+const tip=$("tip");
+function showTip(e,html){ tip.innerHTML=html; tip.style.display="block"; moveTip(e); }
+function moveTip(e){ const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+12,y=e.clientY+14; if(x+w>innerWidth-8)x=e.clientX-w-12; if(y+h>innerHeight-8)y=e.clientY-h-12; tip.style.left=x+"px"; tip.style.top=y+"px"; }
+function hideTip(){ tip.style.display="none"; }
+
+let active=null, sites=[];
+const chips=$("chips"), srcEl=$("src"), run=$("run");
+EXAMPLES.forEach(ex=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=ex.name; b.setAttribute("aria-pressed","false"); b.dataset.id=ex.id; b.addEventListener("click",()=>{ selectExample(ex.id); pipeline(); }); chips.appendChild(b); });
+function selectExample(id){ active=EXAMPLES.find(e=>e.id===id)||null; [...chips.children].forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===id))); if(active) srcEl.value=active.src; updateMeta(); }
+srcEl.addEventListener("input",()=>{ if(active && srcEl.value!==active.src){ active=null; [...chips.children].forEach(c=>c.setAttribute("aria-pressed","false")); } updateMeta(); });
+function updateMeta(){ const n=srcEl.value?srcEl.value.split("\n").length:0; $("srcName").textContent=active?active.file:(n?"pasted.py":"Paste Python or pick an example"); $("srcMeta").textContent=n?`${n} lines`:""; }
+run.addEventListener("click",pipeline);
+
+// ---------- impact ----------
+function bar(container, label, total, segs, max, kindFn, valFmt, tipFn){
+  const row=document.createElement("div"); row.className="brow";
+  const lab=document.createElement("span"); lab.className="lab"; lab.textContent=label;
+  const track=document.createElement("div"); track.className="track";
+  segs.forEach(s=>{ const d=document.createElement("div"); d.className="seg "+kindFn(s); const pctW=100*s.v/max; d.style.flex=`0 0 ${pctW}%`; if(s.v<=0) d.classList.add("gone");
+    const sp=document.createElement("span"); sp.textContent=s.name; d.appendChild(sp);
+    d.addEventListener("mouseenter",e=>showTip(e,tipFn(s))); d.addEventListener("mousemove",moveTip); d.addEventListener("mouseleave",hideTip); track.appendChild(d); });
+  const val=document.createElement("span"); val.className="val"; val.textContent=valFmt(total);
+  row.append(lab,track,val); container.appendChild(row); return row;
+}
+function renderChart(el, title, key, fmt, unitTip){
+  el.innerHTML=""; const t=document.createElement("div"); t.className="t"; t.textContent=title; el.appendChild(t);
+  const before=sites.map(s=>({name:s.fn, v:s.impact[key+"b"], site:s})), after=sites.map(s=>({name:s.fn, v:s.impact[key+"a"], site:s}));
+  const tb=before.reduce((a,s)=>a+s.v,0), ta=after.reduce((a,s)=>a+s.v,0), max=tb;
+  const tipB=s=>`<b>${s.name}</b> · original<br>${fmt(s.v)} ${unitTip}`;
+  const tipA=s=>`<b>${s.name}</b> · ${s.site.rec}<br>${fmt(s.site.impact[key+"b"])} → ${fmt(s.v)} ${unitTip}${s.site.impact[key+"b"]>s.v?` (−${Math.round(100*(1-s.v/s.site.impact[key+"b"]))}%)`:" (unchanged)"}`;
+  bar(el,"Before",tb,before,max,()=>"base",fmt,tipB);
+  // after: start at "before" widths then animate to "after"
+  const row=bar(el,"After",ta,before.map(s=>({...s})),max,s=>s.site.kind,fmt,tipA);
+  const segEls=[...row.querySelectorAll(".seg")];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ segEls.forEach((d,i)=>{ const v=after[i].v; d.style.flex=`0 0 ${100*v/max}%`; if(v<=0) d.classList.add("gone"); }); }));
+  const ax=document.createElement("div"); ax.className="axis"; ax.style.gridColumn="2"; ax.innerHTML=`<span>0</span><span>${fmt(max/2)}</span><span>${fmt(max)}</span>`;
+  const axRow=document.createElement("div"); axRow.className="brow"; axRow.append(document.createElement("span"),ax,document.createElement("span")); el.appendChild(axRow);
+}
+function renderImpact(){
+  const has=sites.length && sites.every(s=>s.impact);
+  $("impact").hidden=false;
+  const box=$("impact").querySelector(".impact");
+  if(!has){ box.innerHTML='<div class="empty"><b>No traces for pasted code</b>Impact needs a replay set. Run <code>jevify trace -- pytest</code> or point at a traces.jsonl; the verdicts below are still shown.</div>'; return; }
+  const lb=sites.reduce((a,s)=>a+s.impact.lb,0), la=sites.reduce((a,s)=>a+s.impact.la,0), cb=sites.reduce((a,s)=>a+s.impact.cb,0), ca=sites.reduce((a,s)=>a+s.impact.ca,0);
+  $("latBig").innerHTML=`<span class="delta">−${Math.round(100*(1-la/lb))}%</span><span>${fmtMs(la)}</span><span class="was">${fmtMs(lb)}</span>`;
+  $("costBig").innerHTML=`<span class="delta">−${Math.round(100*(1-ca/cb))}%</span><span>${fmtUsd(ca)}</span><span class="was">${fmtUsd(cb)}</span>`;
+  const jev=sites.filter(s=>s.kind==="jev"), det=sites.filter(s=>s.kind==="det"), keep=sites.filter(s=>s.kind==="keep");
+  $("latSub").textContent=`${jev.length} call${jev.length!==1?"s":""} moved to Jev, ${det.length} to code, ${keep.length} left alone`;
+  $("costSub").textContent=`Savings come only from converted calls; kept calls cost exactly what they did`;
+  renderChart($("latChart"),"Time per call, execution order","l",fmtMs,"p95");
+  renderChart($("costChart"),"Cost per call","c",fmtUsd,"per 1k runs");
+  const evs=sites.filter(s=>s.ev); const worstA=Math.min(...evs.map(s=>s.ev.agree)), worstR=Math.min(...evs.map(s=>s.ev.recall)), worstF=Math.max(...evs.map(s=>s.ev.fb)), n=evs.reduce((a,s)=>a+s.ev.n,0);
+  const okAll=worstA>=CONS.quality&&worstR>=CONS.recall&&worstF<=CONS.fallback;
+  $("quality").innerHTML=`<span class="${okAll?"ok":"bad"}">${okAll?"Quality constraints met":"Constraint missed"}</span><span>agreement <b>${pct(worstA)}</b></span><span>critical recall <b>${pct(worstR)}</b></span><span>fallback to original <b>${pct(worstF)}</b></span><span>replayed on <b>${n.toLocaleString()}</b> traces</span><span class="spacer"></span><button class="lnk" id="guardBtn" type="button">How is this checked?</button>`;
+  $("guard").className="guard"; $("guard").innerHTML=`Every converted call is replayed against the original on recorded traffic and must meet: agreement with labels ≥ <code>${pct(CONS.quality)}</code>, critical-class recall ≥ <code>${pct(CONS.recall)}</code>, p95 ≤ <code>${CONS.p95} ms</code>, fallback rate ≤ <code>${pct(CONS.fallback)}</code>. Labels come from human review or actual outcomes where available — the goal is the application's decision, not agreement with the old model. Numbers above are the worst case across converted calls. Ships behind a flag: shadow → canary → expand. Illustrative figures in this mock.`;
+  $("guardBtn").addEventListener("click",()=>$("guard").classList.toggle("on"));
+}
+
+// ---------- changes ----------
+function codeBlock(text,cls){ const p=document.createElement("pre"); p.className="blk "+(cls||""); p.textContent=text; return p; }
+function renderRows(){
+  $("changes").hidden=false; const rows=$("rows"); rows.innerHTML="";
+  const file=active?active.file:"pasted.py";
+  $("changesTitle").textContent=`${sites.length} LLM call${sites.length!==1?"s":""} found in ${file}`;
+  if(!sites.length){ rows.innerHTML='<div class="empty"><b>No LLM calls found</b>The scanner looks for <code>model="…"</code> arguments or wrappers like <code>call_llm("model", …)</code>.</div>'; return; }
+  sites.forEach((s,i)=>{
+    const d=document.createElement("details"); d.className="row";
+    const sum=document.createElement("summary"); sum.className="rowhead"; sum.style.listStyle="none";
+    const better=s.impact&&s.impact.la<s.impact.lb;
+    sum.innerHTML=`<span class="tri">▶</span><span class="fn"></span><span><span class="tag ${s.kind}"></span></span>
+      <span class="d ${s.impact?(better?"better":"same"):""}"></span><span class="d ${s.impact?(better?"better":"same"):""}"></span>`;
+    sum.querySelector(".fn").innerHTML=`<span></span><small></small>`; sum.querySelector(".fn span").textContent=s.fn; sum.querySelector(".fn small").textContent=`line ${s.line} · ${s.pattern}`;
+    sum.querySelector(".tag").textContent=s.rec;
+    const ds=sum.querySelectorAll(".d");
+    if(s.impact){ ds[0].innerHTML=`${fmtMs(s.impact.la)}<small>${better?"was "+fmtMs(s.impact.lb):"unchanged"}</small>`; ds[1].innerHTML=`${fmtUsd(s.impact.ca)}<small>${better?"was "+fmtUsd(s.impact.cb):"unchanged"}</small>`; }
+    else { ds[0].innerHTML=`–<small>no traces</small>`; ds[1].innerHTML=`–<small>no traces</small>`; }
+    d.appendChild(sum);
+    const body=document.createElement("div"); body.className="rowbody"; d.appendChild(body);
+    let tab="rewrite";
+    const draw=()=>{
+      body.innerHTML="";
+      const why=document.createElement("p"); why.className="why"; why.textContent=s.why; body.appendChild(why);
+      if(s.prims.length){ const pr=document.createElement("div"); pr.className="prims"; s.prims.forEach(p=>{ const e=document.createElement("span"); e.className="prim"; e.textContent=p; pr.appendChild(e); }); body.appendChild(pr); }
+      const tabs=document.createElement("div"); tabs.className="tabs"; tabs.setAttribute("role","tablist");
+      [["rewrite","Rewrite"],["slice","Program slice"],["spec","DecisionSpec"],["eval","Eval"],["pr","Pull request"]].forEach(([k,l])=>{ const b=document.createElement("button"); b.type="button"; b.className="tab"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",String(k===tab)); b.textContent=l; b.addEventListener("click",()=>{tab=k;draw();}); tabs.appendChild(b); });
+      body.appendChild(tabs);
+      const sec=document.createElement("div"); sec.className="sec";
+      if(tab==="rewrite"){ sec.innerHTML="<h4>Before → after</h4>"; const two=document.createElement("div"); two.className="two"; two.appendChild(codeBlock(s.before)); two.appendChild(codeBlock(s.after,"after"+(s.kind==="det"?" det":""))); sec.appendChild(two);
+        if(s.kind==="jev"){ const n=document.createElement("div"); n.className="note"; n.style.marginTop="10px"; n.textContent="Thresholds are placeholders fitted on the replay set. The real tool selects them from your traces under your error costs — never copied from examples."; sec.appendChild(n); } }
+      else if(tab==="slice"){ sec.innerHTML="<h4>What the rest of the program actually reads from this call</h4>"; const g=document.createElement("div"); g.className="slice"; s.slice.forEach(([f,u,t])=>{ const r=document.createElement("div"); r.className=u; r.innerHTML='<span class="f"></span><span></span>'; r.children[0].textContent=f; r.children[1].textContent=t; g.appendChild(r); }); sec.appendChild(g); }
+      else if(tab==="spec"){ sec.innerHTML="<h4>DecisionSpec — reviewable, runnable against Jev or an LLM baseline, versioned separately</h4>"; sec.appendChild(codeBlock(s.spec)); }
+      else if(tab==="eval"){ if(!s.ev){ sec.innerHTML="<h4>Eval</h4><div class='note'>Nothing to evaluate — this call is left unchanged.</div>"; }
+        else { const e=s.ev; sec.innerHTML=`<h4>Replay of ${e.n.toLocaleString()} traces · original vs candidate</h4>`; const t=document.createElement("table"); t.className="ev";
+          const row=(k,b,c,ok)=>`<tr><td>${k}</td><td class="num">${b}</td><td class="num">${c}</td><td class="${ok===true?"pass":ok===false?"fail":""}">${ok===true?"met":ok===false?"missed":""}</td></tr>`;
+          t.innerHTML=`<thead><tr><th>Metric</th><th style="text-align:right">Original</th><th style="text-align:right">Candidate</th><th>Constraint</th></tr></thead><tbody>
+            ${row("Agreement with labels","—",pct(e.agree),e.agree>=CONS.quality)}${row("Critical-class recall ("+e.critical+")","—",pct(e.recall),e.recall>=CONS.recall)}${row("Fallback rate","0%",pct(e.fb),e.fb<=CONS.fallback)}
+            ${row("p95 latency",fmtMs(s.impact.lb),fmtMs(s.impact.la),s.impact.la<=CONS.p95)}${row("Cost per 1k runs",fmtUsd(s.impact.cb),fmtUsd(s.impact.ca),null)}${row("Stability across 5 reruns","—","99.4% identical",null)}</tbody>`; sec.appendChild(t); } }
+      else if(tab==="pr"){ sec.innerHTML="<h4>What the pull request contains</h4>"; const g=document.createElement("div"); g.className="checks"; s.pr.forEach(p=>{ const i=p.indexOf(" — "); const r=document.createElement("div"); r.innerHTML='<span class="f"></span><span></span>'; r.children[0].textContent=i>0?p.slice(0,i):p; r.children[1].textContent=i>0?p.slice(i+3):""; g.appendChild(r); }); sec.appendChild(g);
+        if(s.kind==="jev"){ const h4=document.createElement("h4"); h4.style.marginTop="14px"; h4.textContent="Rollout"; sec.appendChild(h4); const ro=document.createElement("div"); ro.className="rollout"; ro.innerHTML=`<div><b>1 · Shadow</b>Production answer from the original LLM. Jev runs in parallel; disagreements logged.</div><div><b>2 · Canary</b>High-confidence, low-risk traffic → Jev. Uncertain → original. High-risk → original or human.</div><div><b>3 · Expand</b>Coverage grows with observed outcomes. Eval re-runs weekly for drift; model version stays pinned.</div>`; sec.appendChild(ro); } }
+      body.appendChild(sec);
+    };
+    d.addEventListener("toggle",()=>{ if(d.open){ draw(); [...rows.children].forEach(o=>{ if(o!==d) o.open=false; }); } });
+    rows.appendChild(d);
+  });
+}
+
+// ---------- pipeline ----------
+const STAGES=["Scanning for model calls…","Replaying traces…","Deriving DecisionSpecs…","Evaluating original vs candidate…","Assembling PR…"];
+async function pipeline(){
+  const code=srcEl.value.trim(); if(!code){ srcEl.focus(); return; }
+  run.disabled=true; $("prog").classList.add("on"); const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for(const s of STAGES){ $("progText").textContent=s; await new Promise(r=>setTimeout(r,reduce?40:220)); }
+  sites=(active && srcEl.value===active.src)?active.sites:heuristic(srcEl.value);
+  $("srcBox").open=false;
+  renderImpact(); renderRows(); $("foot").hidden=false;
+  $("prog").classList.remove("on"); run.disabled=false;
+}
+selectExample("triage"); pipeline();
+</script>
